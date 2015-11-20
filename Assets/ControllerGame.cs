@@ -8,6 +8,7 @@ public class ControllerGame : MonoBehaviour
     public static ControllerGame instance;
 
     public static float MAX_ROPE_WIDTH = 3f;
+    public static float MAX_TOUCH_TIME_FOR_PRESS = 0.2f;
 
     //Editor Member Variables
     public GameObject objPlayer;
@@ -22,6 +23,8 @@ public class ControllerGame : MonoBehaviour
     public GameObject objFinalScore;
     public GameObject objWinLose;
     public float hookshotSpeed = 10f;
+    public float maxForce = 8f;
+    public float forcePerPixel = 0.25f;
 
     //Private Member Variables
     private PlayerStats _playerStats;
@@ -38,6 +41,10 @@ public class ControllerGame : MonoBehaviour
     private Text _txtWinLose;
     private double _timeElapsed;
     private GameObject _objHookshot;
+    private Vector2 _lastMousePosition;
+    private float _touchTime = 0f;
+    private bool _stationaryPress = false;
+    private bool _justShot = false;
 
     // Use this for initialization
     void Start()
@@ -85,32 +92,68 @@ public class ControllerGame : MonoBehaviour
             _txtTime.text = _timeElapsed.ToString("0.00");
             Vector2 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
+            bool newClick = false;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
             if(Input.touchCount > 0)
             {
                 touchPosition = Camera.main.ScreenToWorldPoint(Input.GetTouch(0).position);
 #endif
+
 #if UNITY_ANDROID && !UNITY_EDITOR
                 if (Input.GetTouch(0).phase == TouchPhase.Began)
+                {
+                    //Debug.Log("Click");
+                    _touchTime = 0f;
+                    _stationaryPress = true;
+                    if (_objAttachmentLine && _objAttachmentPoint)
+                    {
+                        //disonnectRope();
+                    }
+                    else
+                    {
+                        if(_objHookshot != null)
+                        {
+                            Destroy(_objHookshot);
+                        }
+                        _justShot = true;
+                        _objHookshot = (GameObject)Instantiate(prefabHookshot, objPlayer.transform.position, Quaternion.identity);
+
+                        Vector3 deltaPosition = (Vector3) touchPosition - objPlayer.transform.position;
+                        deltaPosition.Normalize();
+                        float rotZRaw = Mathf.Atan2(deltaPosition.y, deltaPosition.x);
+                        float rotZ = rotZRaw * Mathf.Rad2Deg;
+                        Debug.Log(rotZ.ToString());
+                        _objHookshot.transform.rotation = Quaternion.Euler(0f, 0f, rotZ - 90);
+                        _objHookshot.GetComponent<Rigidbody2D>().velocity = new Vector2(hookshotSpeed * Mathf.Cos(rotZRaw), hookshotSpeed * Mathf.Sin(rotZRaw));
+                    }
+                }
+                if (Input.GetTouch(0).phase == TouchPhase.Ended)
+                {
+                    if (_objAttachmentLine && _objAttachmentPoint && _touchTime <= MAX_TOUCH_TIME_FOR_PRESS && _stationaryPress == true && _justShot == false)
+                    {
+                        disonnectRope();
+                    }
+                    _justShot = false;
+                }
 #else
             if (Input.GetMouseButtonDown(0) == true)
-#endif
             {
+                newClick = true;
                 //Debug.Log("Click");
-                if(_objAttachmentLine && _objAttachmentPoint)
+                if (_objAttachmentLine && _objAttachmentPoint)
                 {
                     disonnectRope();
                 }
                 else
                 {
-                    if(_objHookshot != null)
+                    if (_objHookshot != null)
                     {
                         Destroy(_objHookshot);
                     }
                     _objHookshot = (GameObject)Instantiate(prefabHookshot, objPlayer.transform.position, Quaternion.identity);
 
-                    Vector3 deltaPosition = (Vector3) touchPosition - objPlayer.transform.position;
+                    Vector3 deltaPosition = (Vector3)touchPosition - objPlayer.transform.position;
                     deltaPosition.Normalize();
                     float rotZRaw = Mathf.Atan2(deltaPosition.y, deltaPosition.x);
                     float rotZ = rotZRaw * Mathf.Rad2Deg;
@@ -119,24 +162,8 @@ public class ControllerGame : MonoBehaviour
                     _objHookshot.GetComponent<Rigidbody2D>().velocity = new Vector2(hookshotSpeed * Mathf.Cos(rotZRaw), hookshotSpeed * Mathf.Sin(rotZRaw));
                 }
             }
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-                if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved || Input.GetTouch(0).phase == TouchPhase.Stationary)
-#else
-            if (Input.GetMouseButton(0) == true)
 #endif
-            {
-                //Add some controls for swipes here.
-            }
 
-#if UNITY_ANDROID && !UNITY_EDITOR
-                if(Input.GetTouch(0).phase == TouchPhase.Ended || Input.GetTouch(0).phase == TouchPhase.Canceled)
-#else
-            if (Input.GetMouseButtonUp(0) == true)
-#endif
-            {
-                //Debug.Log("Unclick");
-            }
 #if UNITY_ANDROID && !UNITY_EDITOR
             }
 #endif
@@ -154,6 +181,27 @@ public class ControllerGame : MonoBehaviour
                 float newDistance = Vector3.Distance(_objAttachmentPoint.transform.position, objPlayer.transform.position);
                 Vector3 newScale = new Vector3(newDistance * (1f / oneToXScale), Math.Min(_attachmentDistance / newDistance, MAX_ROPE_WIDTH), 1f);
                 _objAttachmentLine.transform.localScale = newScale;
+
+                //Determine force
+                
+#if UNITY_ANDROID && !UNITY_EDITOR
+                if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
+                {
+                    _stationaryPress = false;
+                    addClockwiseForce(-Input.GetTouch(0).deltaPosition.x * forcePerPixel);  //Note this will only work for testing. smaller devices will need some consideration of the actual screen width.
+                }
+#else
+                if (_lastMousePosition != (Vector2)Input.mousePosition)
+                {
+                    if (newClick == false)
+                    {
+                        Vector2 deltaMousePosition = (Vector2)Input.mousePosition - _lastMousePosition;
+                        addClockwiseForce(-deltaMousePosition.x * forcePerPixel);
+                    }
+                    _lastMousePosition = Input.mousePosition;
+                }
+#endif
+                //addClockwiseForce(5f);
             }
 
             updateScoreUI();    //The fast to code way...
@@ -234,5 +282,29 @@ public class ControllerGame : MonoBehaviour
     public bool isGameActive()
     {
         return _gameActive;
+    }
+
+    public void addClockwiseForce(float force)
+    {
+        if (_objAttachmentLine == null || _objAttachmentPoint == null)
+        {
+            return;
+        }
+
+        Vector2 vTemp = new Vector2();
+        vTemp = (Vector3)_attachmentPoint - objPlayer.transform.position;
+        vTemp.Normalize();
+
+        /* long way for if i want to mess around with stuff.
+        float cacheCos = 0;// Mathf.Cos(Mathf.Deg2Rad * 90f);   //The long way first. woo vector math
+        float cacheSin = 1;// Mathf.Sin(Mathf.Deg2Rad * 90f);
+        Debug.Log("cacheCos : " + cacheCos + " - cacheSin : " + cacheSin);
+        Vector2 vForce = new Vector2(((vTemp.x * cacheCos) - (vTemp.y * cacheSin)), ((vTemp.x * cacheSin) - (vTemp.y * cacheCos)));
+        */
+
+        Vector2 vForce = new Vector2(-vTemp.y, vTemp.x);
+        vForce *= force;
+
+        _rigidbodyPlayer.AddForce(vForce);
     }
 }
