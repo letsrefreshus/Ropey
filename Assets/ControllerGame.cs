@@ -25,6 +25,7 @@ public class ControllerGame : MonoBehaviour
     public float hookshotSpeed = 10f;
     public float maxForce = 8f;
     public float forcePerPixel = 0.25f;
+    public float playerGravity = 9.8f;
 
     //Private Member Variables
     private PlayerStats _playerStats;
@@ -45,6 +46,11 @@ public class ControllerGame : MonoBehaviour
     private float _touchTime = 0f;
     private bool _stationaryPress = false;
     private bool _justShot = false;
+
+    void Awake()
+    {
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Hookshot"), true);
+    }
 
     // Use this for initialization
     void Start()
@@ -182,8 +188,8 @@ public class ControllerGame : MonoBehaviour
                 Vector3 newScale = new Vector3(newDistance * (1f / oneToXScale), Math.Min(_attachmentDistance / newDistance, MAX_ROPE_WIDTH), 1f);
                 _objAttachmentLine.transform.localScale = newScale;
 
-                //Determine force
-                
+                //Swipe Movement Controls.
+                /*
 #if UNITY_ANDROID && !UNITY_EDITOR
                 if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
                 {
@@ -201,11 +207,32 @@ public class ControllerGame : MonoBehaviour
                     _lastMousePosition = Input.mousePosition;
                 }
 #endif
+                */
                 //addClockwiseForce(5f);
             }
 
+            applyGravitationalForce();
+
             updateScoreUI();    //The fast to code way...
         }
+    }
+
+    private void applyGravitationalForce()
+    {
+        Vector2 accel = Input.acceleration;
+
+        //Debug.Log("Acceleration Raw : " + accel);
+
+        if (accel.x == 0 && accel.y == 0)
+        {
+            accel.y = -1;
+        }
+
+        accel.Normalize();
+
+        //Debug.Log("Acceleration Normal : " + accel);
+
+        _rigidbodyPlayer.AddForce(playerGravity * accel);
     }
 
     public void connectRope(Vector3 attachmentPoint)
