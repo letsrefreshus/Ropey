@@ -28,11 +28,31 @@ public class PlayerStats : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("OnTriggerEnter2D Called");
+        //Debug.Log("OnTriggerEnter2D Called");
         TriggeredAction triggeredAction = other.gameObject.GetComponent<TriggeredAction>();
         if(triggeredAction != null)
         {
             triggeredAction.onTriggerEnter(this, _controllerGame);
+        }
+    }
+
+    void OnTriggerStay2D(Collider2D other)
+    {
+        //Debug.Log("OnTriggerEnter2D Called");
+        TriggeredAction triggeredAction = other.gameObject.GetComponent<TriggeredAction>();
+        if (triggeredAction != null)
+        {
+            triggeredAction.onTriggerStay(this, _controllerGame);
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        //Debug.Log("OnTriggerEnter2D Called");
+        TriggeredAction triggeredAction = other.gameObject.GetComponent<TriggeredAction>();
+        if (triggeredAction != null)
+        {
+            triggeredAction.onTriggerExit(this, _controllerGame);
         }
     }
 

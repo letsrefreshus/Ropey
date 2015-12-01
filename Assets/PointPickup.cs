@@ -24,4 +24,12 @@ public class PointPickup : TriggeredAction {
             Destroy(gameObject);
         }
     }
+
+    public override void onTriggerStay(PlayerStats stats, ControllerGame controllerGame)
+    {
+    }
+
+    public override void onTriggerExit(PlayerStats stats, ControllerGame controllerGame)
+    {
+    }
 }

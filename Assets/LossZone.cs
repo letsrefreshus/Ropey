@@ -20,4 +20,12 @@ public class LossZone : TriggeredAction
     {
         controllerGame.gameOver(false);
     }
+
+    public override void onTriggerStay(PlayerStats stats, ControllerGame controllerGame)
+    {
+    }
+
+    public override void onTriggerExit(PlayerStats stats, ControllerGame controllerGame)
+    {
+    }
 }

@@ -13,8 +13,8 @@ public class ControllerStartMenu : MonoBehaviour {
 	
 	}
 
-    public void startGame()
+    public void loadLevel(int levelNum)
     {
-        Application.LoadLevel("Main");
+        Application.LoadLevel("Level" + levelNum);
     }
 }

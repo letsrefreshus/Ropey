@@ -20,4 +20,12 @@ public class VictoryZone : TriggeredAction
     {
         controllerGame.gameOver(true);
     }
+
+    public override void onTriggerStay(PlayerStats stats, ControllerGame controllerGame)
+    {
+    }
+
+    public override void onTriggerExit(PlayerStats stats, ControllerGame controllerGame)
+    {
+    }
 }

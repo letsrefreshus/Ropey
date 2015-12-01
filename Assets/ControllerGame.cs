@@ -26,6 +26,7 @@ public class ControllerGame : MonoBehaviour
     public float maxForce = 8f;
     public float forcePerPixel = 0.25f;
     public float playerGravity = 9.8f;
+    public bool tiltGravity = true;
 
     //Private Member Variables
     private PlayerStats _playerStats;
@@ -219,18 +220,22 @@ public class ControllerGame : MonoBehaviour
 
     private void applyGravitationalForce()
     {
-        Vector2 accel = Input.acceleration;
-
-        //Debug.Log("Acceleration Raw : " + accel);
-
-        if (accel.x == 0 && accel.y == 0)
+        Vector2 accel = new Vector2(0f, -1f);
+        if(tiltGravity == true)
         {
-            accel.y = -1;
+            accel = Input.acceleration;
+
+            //Debug.Log("Acceleration Raw : " + accel);
+
+            if (accel.x == 0 && accel.y == 0)
+            {
+                accel.y = -1;
+            }
+
+            accel.Normalize();
+
+            //Debug.Log("Acceleration Normal : " + accel);
         }
-
-        accel.Normalize();
-
-        //Debug.Log("Acceleration Normal : " + accel);
 
         _rigidbodyPlayer.AddForce(playerGravity * accel);
     }
@@ -260,7 +265,8 @@ public class ControllerGame : MonoBehaviour
 
     public void disonnectRope()
     {
-        Destroy(objPlayer.GetComponent<DistanceJoint2D>());
+        if(objPlayer.GetComponent<DistanceJoint2D>() != null)
+            Destroy(objPlayer.GetComponent<DistanceJoint2D>());
         if (_objAttachmentLine)
             Destroy(_objAttachmentLine);
         if (_objAttachmentPoint)
@@ -333,5 +339,28 @@ public class ControllerGame : MonoBehaviour
         vForce *= force;
 
         _rigidbodyPlayer.AddForce(vForce);
+    }
+
+    public void applyForceToPlayer(Vector2 force)
+    {
+        _rigidbodyPlayer.AddForce(force);
+    }
+
+    public Vector3 getPlayerPosition()
+    {
+        return objPlayer.transform.localPosition;
+    }
+
+    public void removeHookshot()
+    {
+        if (_objHookshot != null)
+        {
+            Destroy(_objHookshot);
+        }
+    }
+
+    public void movePlayerToGameObject(GameObject target)
+    {
+        objPlayer.transform.localPosition = target.transform.localPosition;
     }
 }
