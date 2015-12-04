@@ -79,11 +79,13 @@
     <Compile Include="Assets\ControllerStartMenu.cs" />
     <Compile Include="Assets\HookshotBehavior.cs" />
     <Compile Include="Assets\LossZone.cs" />
+    <Compile Include="Assets\OneTimeSwitch.cs" />
     <Compile Include="Assets\PlayerStats.cs" />
     <Compile Include="Assets\PointPickup.cs" />
     <Compile Include="Assets\SpeedLimitZone.cs" />
     <Compile Include="Assets\TeleportationZone.cs" />
     <Compile Include="Assets\TimedLife.cs" />
+    <Compile Include="Assets\TimerSwitch.cs" />
     <Compile Include="Assets\ToggleSwitch.cs" />
     <Compile Include="Assets\TriggerSwitch.cs" />
     <Compile Include="Assets\TriggeredAction.cs" />

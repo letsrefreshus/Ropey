@@ -4,7 +4,7 @@ using System;
 
 public class TriggerSwitch : TriggeredAction
 {
-    public GameObject target;
+    public GameObject[] targets;
     public bool setActiveTo = true;
 
     // Use this for initialization
@@ -21,7 +21,10 @@ public class TriggerSwitch : TriggeredAction
     //Overrides
     public override void onTriggerEnter(PlayerStats stats, ControllerGame controllerGame)
     {
-        target.SetActive(setActiveTo);
+        foreach (GameObject target in targets)
+        {
+            target.SetActive(setActiveTo);
+        }
     }
 
     public override void onTriggerStay(PlayerStats stats, ControllerGame controllerGame)

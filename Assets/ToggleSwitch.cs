@@ -4,11 +4,12 @@ using System;
 
 public class ToggleSwitch : TriggeredAction
 {
-    public GameObject target;
+    public GameObject[] targets;
     public Sprite onSprite;
     public Sprite offSprite;
 
     private SpriteRenderer _renderer;
+    private bool _isOn = false;
 
     // Use this for initialization
     void Start()
@@ -24,7 +25,7 @@ public class ToggleSwitch : TriggeredAction
 
     private void updateSprite()
     {
-        if(target.activeSelf == true)
+        if(_isOn == true)
         {
             _renderer.sprite = offSprite;
         }
@@ -37,8 +38,12 @@ public class ToggleSwitch : TriggeredAction
     //Overrides
     public override void onTriggerEnter(PlayerStats stats, ControllerGame controllerGame)
     {
-        target.SetActive(!target.activeSelf);
-        updateSprite();
+        _isOn = !_isOn;
+        foreach (GameObject target in targets)
+        {
+            target.SetActive(!target.activeSelf);
+            updateSprite();
+        }
     }
 
     public override void onTriggerStay(PlayerStats stats, ControllerGame controllerGame)
